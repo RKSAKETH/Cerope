@@ -1,30 +1,33 @@
 import express from "express";
+import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
-import mongoose from "mongoose";
-// import authRoutes from "./routes/authRoutes.js";
-// import userRoutes from "./routes/userRoutes.js";
+
+import authRoute from "./routes/authRoutes.js";
+import userRoute from "./routes/userRoutes.js";
 
 dotenv.config();
 
 const app = express();
 
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log("MongoDB connected");
-  } catch (err) {
-    console.error("DB connection failed:", err.message);
-    process.exit(1);
-  }
-};
-
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+// Middleware
 app.use(express.json());
+app.use(cors());
 
-const PORT = process.env.PORT || 8000;
+// Database Connection
+mongoose
+  .connect(process.env.MONGO_URL)
+  .then(() => console.log("DB Connection Successful"))
+  .catch((err) => console.log(err));
 
-app.listen(PORT, async () => {
-  await connectDB();
-  console.log(`Server running on port ${PORT}`);
+app.get("/", (req, res) => {
+  res.send("Root Path");
+});
+
+// Routes
+app.use("/auth", authRoute);
+app.use("/users", userRoute);
+
+app.listen(3000, () => {
+  console.log("Backend server is running on port 3000!");
 });
