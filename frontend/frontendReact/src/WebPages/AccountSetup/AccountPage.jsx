@@ -1,18 +1,24 @@
 import React, { useState } from "react";
-import { User, Calendar, ChevronDown } from "lucide-react";
+import { User, Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const AccountSetup = () => {
+const AccountPage = () => {
   const navigate = useNavigate();
   const inputClass =
     "w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none text-sm text-gray-700 placeholder-gray-400 transition-all shadow-sm";
   const labelClass =
     "text-xs font-bold text-gray-700 ml-1 uppercase tracking-wide";
 
+  // Avatar seeds (Micah style)
+  const avatarOptions = [
+    "Christopher", "Jack", "Jude", "Oliver", "Emery", 
+    "Annie", "Halo", "Sarah", "Mela", "Jessica"
+  ];
+
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
-    profilePicture: "Select Profile Picture",
+    profilePicture: "Christopher", // Default avatar seed
     dateOfBirth: "",
     stylePreference: "",
     phoneNumber: "",
@@ -20,10 +26,16 @@ const AccountSetup = () => {
     city: "",
   });
 
+  // Avatar UI State
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+
   const [errors, setErrors] = useState({});
   const [generalError, setGeneralError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const getAvatarUrl = (seed) => 
+    `https://api.dicebear.com/9.x/micah/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4&backgroundType=gradientLinear&mouth=smile,smirk`;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -36,6 +48,11 @@ const AccountSetup = () => {
   const handleStyleChange = (value) => {
     setForm((prev) => ({ ...prev, stylePreference: value }));
     setErrors((prev) => ({ ...prev, stylePreference: "" }));
+  };
+
+  const handleAvatarSelect = (seed) => {
+    setForm((prev) => ({ ...prev, profilePicture: seed }));
+    // Optional: setShowAvatarSelector(false);
   };
 
   const validateForm = () => {
@@ -62,57 +79,55 @@ const AccountSetup = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setGeneralError("");
-  setSuccessMessage("");
+    e.preventDefault();
+    setGeneralError("");
+    setSuccessMessage("");
 
-  const isValid = validateForm();
-  if (!isValid) return;
+    const isValid = validateForm();
+    if (!isValid) return;
 
-  const token = localStorage.getItem("token");
-  if (!token) {
-    setGeneralError("You must be logged in before setting up your profile.");
-    return;
-  }
-
-  try {
-    setIsSubmitting(true);
-
-    const res = await fetch("http://localhost:3000/profile", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(form),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      setGeneralError(data.error || "Failed to save profile. Try again.");
-    } else {
-      setSuccessMessage("Profile saved successfully! 🎉");
-
-      // 👉 Navigate AFTER success, using ID from backend
-      const userId = data.user?._id;
-
-      if (!userId) {
-        console.error("User ID missing in response:", data);
-        return;
-      }
-
-      setTimeout(() => {
-        navigate(`/profile/${userId}`);
-      }, 2000);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setGeneralError("You must be logged in before setting up your profile.");
+      return;
     }
-  } catch (err) {
-    console.error(err);
-    setGeneralError("Something went wrong. Please try again later.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+
+    try {
+      setIsSubmitting(true);
+
+      const res = await fetch("http://localhost:3000/profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setGeneralError(data.error || "Failed to save profile. Try again.");
+      } else {
+        setSuccessMessage("Profile saved successfully! 🎉");
+
+        const userId = data.user?._id;
+        if (!userId) {
+          console.error("User ID missing in response:", data);
+          return;
+        }
+
+        setTimeout(() => {
+          navigate(`/profile/${userId}`);
+        }, 2000);
+      }
+    } catch (err) {
+      console.error(err);
+      setGeneralError("Something went wrong. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#FFF8F9] font-sans p-4 lg:p-10 flex flex-col">
@@ -174,25 +189,63 @@ const AccountSetup = () => {
                 />
               </div>
 
-              {/* Profile Picture */}
+              {/* Profile Picture (UPDATED) */}
               <div className="flex flex-col gap-3">
                 <label className={labelClass}>Profile Picture</label>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-white flex-shrink-0 flex items-center justify-center text-gray-400 border border-gray-200 shadow-sm">
-                    <User size={24} />
-                  </div>
-                  <div className="relative flex-1">
-                    <select
-                      name="profilePicture"
-                      className={`${inputClass} appearance-none cursor-pointer`}
-                      value={form.profilePicture}
-                      onChange={handleChange}
+                <div className="relative w-full">
+                  {/* Selection Header */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-14 rounded-full bg-purple-50 border border-purple-100 p-1 flex-shrink-0 overflow-hidden">
+                      <img
+                        src={getAvatarUrl(form.profilePicture)}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    
+                    <button
+                      type="button"
+                      onClick={() => setShowAvatarSelector(!showAvatarSelector)}
+                      className="flex-1 flex items-center justify-between px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all text-sm text-gray-700 shadow-sm"
                     >
-                      <option>Select Profile Picture</option>
-                      <option>Upload Custom</option>
-                    </select>
-                    <ChevronDown className="absolute right-4 top-3.5 text-gray-400 w-4 h-4 pointer-events-none" />
+                      <span>Change Avatar</span>
+                      {showAvatarSelector ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </button>
                   </div>
+
+                  {/* Avatar Grid Dropdown */}
+                  {showAvatarSelector && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl p-4 z-50">
+                      <div className="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">Choose Style</div>
+                      <div className="grid grid-cols-5 gap-3">
+                        {avatarOptions.map((seed) => (
+                          <button
+                            key={seed}
+                            type="button"
+                            onClick={() => handleAvatarSelect(seed)}
+                            className={`rounded-full p-0.5 transition-all ${
+                              form.profilePicture === seed 
+                                ? "ring-2 ring-purple-500 ring-offset-1" 
+                                : "hover:ring-2 hover:ring-gray-200 hover:ring-offset-1"
+                            }`}
+                          >
+                            <img
+                              src={getAvatarUrl(seed)}
+                              alt={seed}
+                              className="w-10 h-10 rounded-full bg-purple-50"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => setShowAvatarSelector(false)}
+                        className="w-full mt-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -207,7 +260,7 @@ const AccountSetup = () => {
                     value={form.dateOfBirth}
                     onChange={handleChange}
                   />
-                  <Calendar className="absolute right-4 top-3 text-gray-400 w-4 h-4" />
+                  <Calendar className="absolute right-4 top-3 text-gray-400 w-4 h-4 pointer-events-none" />
                 </div>
                 {errors.dateOfBirth && (
                   <p className="text-xs text-red-500">{errors.dateOfBirth}</p>
@@ -311,23 +364,17 @@ const AccountSetup = () => {
                 )}
               </div>
 
-              {/* City */}
+              {/* City (UPDATED: Changed to Input) */}
               <div className="flex flex-col gap-2">
                 <label className={labelClass}>City</label>
-                <div className="relative">
-                  <select
-                    name="city"
-                    className={`${inputClass} appearance-none cursor-pointer`}
-                    value={form.city}
-                    onChange={handleChange}
-                  >
-                    <option value="">Select location</option>
-                    <option>New York</option>
-                    <option>Tokyo</option>
-                    <option>London</option>
-                  </select>
-                  <ChevronDown className="absolute right-4 top-3.5 text-gray-400 w-4 h-4 pointer-events-none" />
-                </div>
+                <input
+                  type="text"
+                  name="city"
+                  placeholder="Enter city"
+                  className={inputClass}
+                  value={form.city}
+                  onChange={handleChange}
+                />
               </div>
             </div>
           </div>
@@ -337,4 +384,4 @@ const AccountSetup = () => {
   );
 };
 
-export default AccountSetup;
+export default AccountPage;

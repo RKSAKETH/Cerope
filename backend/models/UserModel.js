@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema(
     profile: {
       firstName: { type: String },
       lastName: { type: String },
-      profilePicture: { type: String },
+      profilePicture: { type: String , default : ""},
       dateOfBirth: { type: Date },
       stylePreference: { type: String, enum: ["Men", "Women", "Both"] },
       phoneNumber: { type: String },
