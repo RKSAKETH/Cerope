@@ -10,7 +10,7 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/signin" element={<SignInApp />} />
-        <Route path="/signup" element={<SignUpApp />} />
+        <Route path="/" element={<SignUpApp />} />
         <Route path="/setaccount" element={<AccountApp/>}></Route>
         <Route path="/profile" element={<ProfilePageApp />} />
         {/* Add more routes later... */}

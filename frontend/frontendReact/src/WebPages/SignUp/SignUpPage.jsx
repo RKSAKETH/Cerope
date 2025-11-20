@@ -1,9 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { User, Mail, Lock } from "lucide-react";
-import Navbar from "../../Navbar.jsx";
-import Footer from "../../Footer.jsx";
 
-// Reusable button with your styling
+// Reusable button
 const Button = ({ children, className = "", ...props }) => {
   const baseStyle =
     "w-full py-3 px-6 rounded-full font-medium transition-all duration-200 flex items-center justify-center gap-2";
@@ -17,70 +15,322 @@ const Button = ({ children, className = "", ...props }) => {
   );
 };
 
-// Reusable input with right icon
-const InputField = ({ placeholder, type = "text", icon: Icon }) => (
-  <div className="flex flex-col gap-2">
+// Small helper for password rules
+const PasswordRule = ({ valid, text }) => (
+  <div className="flex items-center gap-2">
+    <span className={valid ? "text-green-500" : "text-red-500"}>
+      {valid ? "✔" : "✖"}
+    </span>
+    <span className="text-gray-700">{text}</span>
+  </div>
+);
+
+// Reusable input with right icon + per-field error message
+const InputField = ({
+  placeholder,
+  type = "text",
+  icon: Icon,
+  name,
+  value,
+  onChange,
+  error,
+}) => (
+  <div className="flex flex-col gap-1">
     <div className="relative">
       <input
+        name={name}
         type={type}
         placeholder={placeholder}
-        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none transition-all text-gray-700 placeholder-gray-400"
+        value={value}
+        onChange={onChange}
+        className={`w-full px-4 py-3 rounded-xl border bg-gray-50/80 focus:bg-white 
+          focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none 
+          transition-all text-gray-800 placeholder-gray-500 placeholder:font-bold
+          ${error ? "border-red-500" : "border-gray-200"}`}
       />
       {Icon && (
         <Icon className="absolute right-4 top-3.5 text-gray-400 w-5 h-5" />
       )}
     </div>
+    {error && (
+      <p className="text-xs text-red-600 font-semibold">{error}</p>
+    )}
   </div>
 );
 
 const Signup = () => {
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [agree, setAgree] = useState(false);
+
+  const [errors, setErrors] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    terms: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // clear error for this field as user types
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+  };
+
+  // password checks for the hint panel
+  const password = form.password;
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>_\-]/.test(password);
+  const showPasswordHints = password.length > 0;
+
+  const validate = () => {
+    const newErrors = {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      terms: "",
+    };
+
+    // Name: required + no numerals
+    if (!form.name.trim()) {
+      newErrors.name = "Please enter your name.";
+    } else if (/\d/.test(form.name)) {
+      newErrors.name = "Invalid Name! Please Do Not Enter Numerals.";
+    }
+
+    // Email: required + format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!form.email.trim()) {
+      newErrors.email = "Please enter your email.";
+    } else if (!emailRegex.test(form.email)) {
+      newErrors.email = "Invalid Email Address !";
+    }
+
+    // Password: required + strength rules
+    if (!form.password) {
+      newErrors.password = "Please enter a password.";
+    } else if (!(hasUpper && hasLower && hasNumber && hasSpecial)) {
+      newErrors.password = "Please meet all password requirements.";
+    }
+
+    // Confirm password
+    if (!form.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password.";
+    } else if (form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = "Passwords Don't Match.";
+    }
+
+    // Terms checkbox
+    if (!agree) {
+      newErrors.terms = "Please Tick The Checkbox To Agree To The Terms .";
+    }
+
+    setErrors(newErrors);
+
+    // any non-empty error message?
+    return !Object.values(newErrors).some((msg) => msg);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
+
+    const isValid = validate();
+    if (!isValid) return;
+
+    try {
+      setLoading(true);
+
+      const res = await fetch("http://localhost:3000/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        let msg = data?.message || "Signup failed";
+
+        // map backend duplicate-email error to design text
+        if (msg.toLowerCase().includes("already") && msg.toLowerCase().includes("email")) {
+          msg = "Looks Like You Already Have An Account. Sign In";
+        }
+
+        setErrors((prev) => ({
+          ...prev,
+          email: msg,
+        }));
+        throw new Error(msg);
+      }
+
+      setMessage("Account created successfully! 🎉");
+      // later: redirect to login here
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <main className="flex-1 max-w-7xl mx-auto w-full px-6 lg:px-12 py-10 grid lg:grid-cols-2 gap-10 items-center">
-      {/* LEFT: form card */}
-      <div className="max-w-md mx-auto w-full space-y-8 bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl border border-white/60 px-8 py-10">
-        <div className="space-y-2">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-            Set up Your Cerope Account
-          </h1>
+    <main
+      className="
+        flex-1 max-w-7xl mx-auto w-full 
+        px-6 lg:px-12 py-10 
+        grid lg:grid-cols-2 gap-12 
+        items-stretch
+      "
+    >
+      {/* LEFT: Form Column */}
+      <div className="w-full relative flex flex-col justify-start lg:pr-10 rounded-3xl overflow-hidden">
+        {/* Background Image for Left Column */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=2073&auto=format&fit=crop"
+            alt="Background Texture"
+            className="w-full h-full object-cover opacity-[0.08]"
+          />
         </div>
 
-        <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-          <InputField placeholder="Name" icon={User} />
-          <InputField placeholder="Email Address" type="email" icon={Mail} />
-          <InputField placeholder="Password" type="password" icon={Lock} />
-          <InputField
-            placeholder="Confirm Password"
-            type="password"
-            icon={Lock}
-          />
+        {/* Content Wrapper */}
+        <div className="relative z-10 space-y-6 py-8">
+          <div className="space-y-2 pl-6">
+            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
+              Set up Your Cerope Account
+            </h1>
+            {errors.terms && (
+              <p className="text-sm text-red-600 font-semibold">
+                {errors.terms}
+              </p>
+            )}
+          </div>
 
-          <label className="flex items-start gap-3 text-sm text-gray-600 cursor-pointer py-2">
-            <input
-              type="checkbox"
-              className="mt-1 rounded border-gray-300 text-black focus:ring-0"
+          <form className="space-y-6 max-w-xl pl-6" onSubmit={handleSubmit}>
+            {/* Name */}
+            <InputField
+              name="name"
+              placeholder="Name"
+              icon={User}
+              value={form.name}
+              onChange={handleChange}
+              error={errors.name}
             />
-            <span>
-              I agree to Cerope&apos;s Terms of Service &amp; Privacy Policy.
-            </span>
-          </label>
 
-          <Button type="submit">Sign Up</Button>
-        </form>
+            {/* Email */}
+            <InputField
+              name="email"
+              placeholder="Email Address"
+              type="email"
+              icon={Mail}
+              value={form.email}
+              onChange={handleChange}
+              error={errors.email}
+            />
 
-        <p className="text-sm text-gray-600">
-          Already a member?{" "}
-          <button
-            type="button"
-            className="text-blue-600 font-semibold hover:underline"
-          >
-            Sign in
-          </button>
-        </p>
+            {/* Password + strength helper */}
+            <div className="space-y-2">
+              <InputField
+                name="password"
+                placeholder="Password"
+                type="password"
+                icon={Lock}
+                value={form.password}
+                onChange={handleChange}
+                error={errors.password}
+              />
+
+              {showPasswordHints && (
+                <div className="mt-1 text-xs bg-white/90 border border-gray-200 rounded-lg p-3 shadow-sm max-w-sm">
+                  <p className="font-semibold mb-1">
+                    New Password must contain
+                  </p>
+                  <PasswordRule valid={hasUpper} text="An Upper Case letter" />
+                  <PasswordRule valid={hasLower} text="A lower case letter" />
+                  <PasswordRule valid={hasNumber} text="A number" />
+                  <PasswordRule
+                    valid={hasSpecial}
+                    text="A special character (*, @, #)"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Confirm Password */}
+            <InputField
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              type="password"
+              icon={Lock}
+              value={form.confirmPassword}
+              onChange={handleChange}
+              error={errors.confirmPassword}
+            />
+
+            {/* Terms checkbox */}
+            <label className="flex items-start gap-3 text-sm text-gray-600 cursor-pointer py-2">
+              <input
+                type="checkbox"
+                className="mt-1 rounded border-gray-300 text-black focus:ring-0"
+                checked={agree}
+                onChange={(e) => {
+                  setAgree(e.target.checked);
+                  setErrors((prev) => ({ ...prev, terms: "" }));
+                }}
+              />
+              <span>
+                I agree to Cerope&apos;s Terms of Service &amp; Privacy Policy.
+              </span>
+            </label>
+
+            {/* Success message */}
+            {message && (
+              <p className="text-sm text-green-600 font-semibold">
+                {message}
+              </p>
+            )}
+
+            <Button type="submit" disabled={loading}>
+              {loading ? "Creating account..." : "Sign Up"}
+            </Button>
+          </form>
+
+          <p className="text-sm text-gray-600 pl-6">
+            Already a member?{" "}
+            <button
+              type="button"
+              className="text-blue-600 font-semibold hover:underline"
+            >
+              Sign in
+            </button>
+          </p>
+        </div>
       </div>
 
-      {/* RIGHT: hero image card */}
-      <div className="hidden lg:block h-[520px] rounded-[2.5rem] overflow-hidden shadow-2xl bg-blue-900 relative">
-        {/* Replace src with your Cerope dress image */}
+      {/* RIGHT: Hero Image Card */}
+      <div className="hidden lg:block h-full min-h-[520px] rounded-[2.5rem] overflow-hidden shadow-2xl bg-blue-900 relative">
         <img
           src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=2020&auto=format&fit=crop"
           alt="Digital Fashion"
@@ -88,7 +338,7 @@ const Signup = () => {
             w-full h-full
             object-cover 
             object-top
-            scale-125
+            scale-110
             transition-transform
             duration-700
             mix-blend-overlay 
@@ -100,7 +350,6 @@ const Signup = () => {
         <div className="absolute top-8 right-8 text-white text-2xl font-bold">
           Cerope
         </div>
-        {/* subtle wireframe texture */}
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20" />
       </div>
     </main>
