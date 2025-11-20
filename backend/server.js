@@ -4,13 +4,12 @@ import dotenv from "dotenv";
 import cors from "cors";
 
 import authRoute from "./routes/authRoutes.js";
-import userRoute from "./routes/userRoutes.js";
 import profileRoute from "./routes/profileRoutes.js"
 
 dotenv.config();
+const port = 3000;
 
 const app = express();
-
 // Middleware
 app.use(express.json());
 app.use(cors());
@@ -27,9 +26,8 @@ app.get("/", (req, res) => {
 
 // Routes
 app.use("/auth", authRoute);
-app.use("/users", userRoute);
 app.use("/profile",profileRoute);
 
-app.listen(3000, () => {
-  console.log("Backend server is running on port 3000!");
+app.listen(port, () => {
+  console.log(`Backend server is running on port ${port}!`);
 });

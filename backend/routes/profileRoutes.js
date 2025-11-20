@@ -1,10 +1,10 @@
 import { Router } from "express";
 import User from "../models/UserModel.js";
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 const router = Router();
 
+// ========== MIDDLEWARE ==========
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
 
@@ -16,7 +16,7 @@ const verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: decoded.id || decoded.userId }; // match what you used when signing
+    req.user = { id: decoded.id || decoded.userId };
     next();
   } catch (err) {
     console.error(err);
@@ -24,7 +24,8 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-router.post("/users/profile", verifyToken, async (req, res) => {
+// ========== SAVE / UPDATE PROFILE ==========
+router.post("/", verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -39,13 +40,11 @@ router.post("/users/profile", verifyToken, async (req, res) => {
       city,
     } = req.body;
 
-    // Basic backend validation (extra safety)
     if (!firstName || !dateOfBirth || !stylePreference || !country) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
     const profileData = {
-      user: userId,
       firstName,
       lastName,
       profilePicture,
@@ -56,18 +55,45 @@ router.post("/users/profile", verifyToken, async (req, res) => {
       city,
     };
 
-    const profile = await Profile.findOneAndUpdate(
-      { user: userId },
-      { $set: profileData },
-      { new: true, upsert: true }
-    );
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: { profile: profileData } },
+      { new: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     return res.status(200).json({
       message: "Profile saved successfully",
-      profile,
+      user: updatedUser,
     });
   } catch (err) {
     console.error("Profile error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ========== GET PROFILE DATA ==========
+router.get("/", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.status(200).json({
+      user: {
+        email: user.email,
+        name: user.name,
+      },
+      profile: user.profile || {},
+    });
+  } catch (err) {
+    console.error("Get profile error:", err);
     return res.status(500).json({ error: "Server error" });
   }
 });

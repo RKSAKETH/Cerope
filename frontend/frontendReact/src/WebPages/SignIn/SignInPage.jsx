@@ -70,12 +70,13 @@ const SignInPage = () => {
 
       const data = await res.json();
 
-      // store JWT (and optionally user)
+      // store JWT + user id (optional but handy)
       localStorage.setItem("token", data.token);
+      localStorage.setItem("userId", data._id);
       localStorage.setItem("user", JSON.stringify(data));
 
-      // redirect after successful login
-      navigate("/setaccount");
+      // redirect after successful login with /:id
+      navigate(`/setaccount/${data._id}`);
 
     } catch (err) {
       console.error(err);

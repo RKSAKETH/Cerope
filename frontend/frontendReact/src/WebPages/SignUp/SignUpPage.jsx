@@ -167,7 +167,7 @@ const Signup = () => {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        let msg = data?.message || "Signup failed";
+        let msg = data?.message || "Looks Like You Already Have An Account. Sign In";
 
         if (msg.toLowerCase().includes("already") && msg.toLowerCase().includes("email")) {
           msg = "Looks Like You Already Have An Account. Sign In";
@@ -184,7 +184,7 @@ const Signup = () => {
 
       // 🔁 redirect to Sign In after short delay
       setTimeout(() => {
-        navigate("/auth/signin");
+        navigate("/signin");
       }, 2000);
     } catch (err) {
       console.error(err);
@@ -313,7 +313,7 @@ const Signup = () => {
           <p className="text-sm text-gray-600 pl-6">
             Already a member?{" "}
             <Link
-              to="/auth/signin"
+              to="/signin"
               className="text-blue-600 font-semibold hover:underline"
             >
               Sign in

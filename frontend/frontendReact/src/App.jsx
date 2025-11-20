@@ -4,15 +4,16 @@ import SignInApp from "./WebPages/SignIn/SignInApp.jsx";
 import SignUpApp from "./WebPages/SignUp/SignUpApp.jsx";
 import AccountApp from "./WebPages/AccountSetup/AccountApp.jsx";
 import ProfilePageApp from "./WebPages/ProfilePage/ProfilePageApp.jsx";
+import ProtectedRoute from "./ProtectedRoute.jsx";
 
 export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/auth/signin" element={<SignInApp />} />
-        <Route path="/auth" element={<SignUpApp />} />
-        <Route path="/setaccount" element={<AccountApp/>}></Route>
-        <Route path="/profile" element={<ProfilePageApp />} />
+        <Route path="/signup" element={<SignUpApp />} />
+        <Route path="/signin" element={<SignInApp/>}/>
+        <Route path="/setaccount/:id" element={<ProtectedRoute><AccountApp/></ProtectedRoute>}></Route>
+        <Route path="/profile/:id" element={<ProfilePageApp/>} />
         {/* Add more routes later... */}
       </Routes>
     </Router>
