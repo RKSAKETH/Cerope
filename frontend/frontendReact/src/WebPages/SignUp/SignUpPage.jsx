@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { User, Mail, Lock } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 // Reusable button
 const Button = ({ children, className = "", ...props }) => {
@@ -15,7 +16,6 @@ const Button = ({ children, className = "", ...props }) => {
   );
 };
 
-// Small helper for password rules
 const PasswordRule = ({ valid, text }) => (
   <div className="flex items-center gap-2">
     <span className={valid ? "text-green-500" : "text-red-500"}>
@@ -25,7 +25,7 @@ const PasswordRule = ({ valid, text }) => (
   </div>
 );
 
-// Reusable input with right icon + per-field error message
+// Reusable input with right icon + per-field error
 const InputField = ({
   placeholder,
   type = "text",
@@ -59,15 +59,15 @@ const InputField = ({
 );
 
 const Signup = () => {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
-
   const [agree, setAgree] = useState(false);
-
   const [errors, setErrors] = useState({
     name: "",
     email: "",
@@ -75,7 +75,6 @@ const Signup = () => {
     confirmPassword: "",
     terms: "",
   });
-
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -85,8 +84,6 @@ const Signup = () => {
       ...prev,
       [name]: value,
     }));
-
-    // clear error for this field as user types
     setErrors((prev) => ({
       ...prev,
       [name]: "",
@@ -145,8 +142,6 @@ const Signup = () => {
     }
 
     setErrors(newErrors);
-
-    // any non-empty error message?
     return !Object.values(newErrors).some((msg) => msg);
   };
 
@@ -174,7 +169,6 @@ const Signup = () => {
         const data = await res.json().catch(() => ({}));
         let msg = data?.message || "Signup failed";
 
-        // map backend duplicate-email error to design text
         if (msg.toLowerCase().includes("already") && msg.toLowerCase().includes("email")) {
           msg = "Looks Like You Already Have An Account. Sign In";
         }
@@ -187,7 +181,11 @@ const Signup = () => {
       }
 
       setMessage("Account created successfully! 🎉");
-      // later: redirect to login here
+
+      // 🔁 redirect to Sign In after short delay
+      setTimeout(() => {
+        navigate("/auth/signin");
+      }, 2000);
     } catch (err) {
       console.error(err);
     } finally {
@@ -229,7 +227,6 @@ const Signup = () => {
           </div>
 
           <form className="space-y-6 max-w-xl pl-6" onSubmit={handleSubmit}>
-            {/* Name */}
             <InputField
               name="name"
               placeholder="Name"
@@ -239,7 +236,6 @@ const Signup = () => {
               error={errors.name}
             />
 
-            {/* Email */}
             <InputField
               name="email"
               placeholder="Email Address"
@@ -250,7 +246,7 @@ const Signup = () => {
               error={errors.email}
             />
 
-            {/* Password + strength helper */}
+            {/* Password + hints */}
             <div className="space-y-2">
               <InputField
                 name="password"
@@ -278,7 +274,6 @@ const Signup = () => {
               )}
             </div>
 
-            {/* Confirm Password */}
             <InputField
               name="confirmPassword"
               placeholder="Confirm Password"
@@ -289,7 +284,6 @@ const Signup = () => {
               error={errors.confirmPassword}
             />
 
-            {/* Terms checkbox */}
             <label className="flex items-start gap-3 text-sm text-gray-600 cursor-pointer py-2">
               <input
                 type="checkbox"
@@ -305,7 +299,6 @@ const Signup = () => {
               </span>
             </label>
 
-            {/* Success message */}
             {message && (
               <p className="text-sm text-green-600 font-semibold">
                 {message}
@@ -319,12 +312,12 @@ const Signup = () => {
 
           <p className="text-sm text-gray-600 pl-6">
             Already a member?{" "}
-            <button
-              type="button"
+            <Link
+              to="/auth/signin"
               className="text-blue-600 font-semibold hover:underline"
             >
               Sign in
-            </button>
+            </Link>
           </p>
         </div>
       </div>
@@ -345,7 +338,6 @@ const Signup = () => {
             opacity-90
           "
         />
-
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/40 to-purple-600/40" />
         <div className="absolute top-8 right-8 text-white text-2xl font-bold">
           Cerope
