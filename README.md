@@ -1,4 +1,3 @@
-````markdown
 # CEROPE – Fashion-Tech MERN Application
 
 Cerope is a full-stack **MERN** web application built as part of an internship evaluation.  
