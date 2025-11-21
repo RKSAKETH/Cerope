@@ -237,7 +237,7 @@ const SignInPage = () => {
 
           <p className="text-center text-xs md:text-sm text-gray-600">
             Don&apos;t have an account?{" "}
-            <Link to="/auth">
+            <Link to="/">
               <span className="text-blue-600 font-semibold hover:underline cursor-pointer">
                 Sign up
               </span>

@@ -1,4 +1,3 @@
-// src/context/UserContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
 
 const UserContext = createContext(null);
@@ -31,9 +30,6 @@ export const UserProvider = ({ children }) => {
         if (!res.ok) return;
 
         const data = await res.json();
-
-        // Adjust to your API shape – from your DB screenshot:
-        // data.profile.profilePicture = "Oliver"
         const seedFromApi =
           data?.profile?.profilePicture ||
           data?.user?.profile?.profilePicture ||

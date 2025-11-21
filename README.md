@@ -1,14 +1,4 @@
-Here’s a **ready-to-use `README.md`** that matches the **exact structure** you just showed (backend + `frontend/frontendReact` with `SignInApp`, `SignInPage`, `SignUpApp`, `SignUpPage`, etc.).
-
-You can paste this into:
-
-* `CEROPE/README.md` (recommended root readme), **or**
-* Replace the existing `frontend/frontendReact/README.md` with this content.
-
----
-
-````markdown
-# 🧵 CEROPE – Fashion-Tech MERN Application
+# CEROPE – Fashion-Tech MERN Application
 
 Cerope is a full-stack **MERN** web application built as part of an internship evaluation.  
 It provides:
@@ -20,7 +10,7 @@ It provides:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```bash
 CEROPE/
@@ -30,55 +20,58 @@ CEROPE/
 │   │   └── UserModel.js
 │   ├── node_modules/
 │   ├── routes/
-│   │   ├── authRoutes.js       # register & login
-│   │   └── profileRoutes.js    # save & fetch profile
+│   │   ├── authRoutes.js
+│   │   └── profileRoutes.js
 │   ├── .env
 │   ├── .gitignore
 │   ├── package-lock.json
 │   ├── package.json
-│   └── server.js               # Express server (ESM)
+│   └── server.js
 │
-└── frontend/
-    └── frontendReact/
-        ├── node_modules/
-        ├── public/
-        ├── src/
-        │   ├── context/
-        │   │   └── UserContext.jsx
-        │   ├── WebPages/
-        │   │   ├── AccountSetup/
-        │   │   │   ├── AccountApp.jsx
-        │   │   │   └── AccountPage.jsx
-        │   │   ├── ProfilePage/
-        │   │   │   ├── NavbarProfile.jsx
-        │   │   │   ├── Profilepage.jsx
-        │   │   │   └── ProfilePageApp.jsx
-        │   │   ├── SignIn/
-        │   │   │   ├── SignInApp.jsx
-        │   │   │   └── SignInPage.jsx
-        │   │   └── SignUp/
-        │   │       ├── SignUpApp.jsx
-        │   │       └── SignUpPage.jsx
-        │   ├── App.jsx
-        │   ├── Footer.jsx
-        │   ├── Navbar.jsx
-        │   ├── ProtectedRoute.jsx
-        │   ├── index.css
-        │   └── main.jsx
-        ├── .gitignore
-        ├── eslint.config.js
-        ├── index.html
-        ├── package-lock.json
-        ├── package.json
-        ├── README.md
-        └── vite.config.js
-````
+├── frontend/
+│   └── frontendReact/
+│       ├── node_modules/
+│       ├── public/
+│       ├── src/
+│       │   ├── context/
+│       │   │   └── UserContext.jsx
+│       │   ├── WebPages/
+│       │   │   ├── AccountSetup/
+│       │   │   │   ├── AccountApp.jsx
+│       │   │   │   └── AccountPage.jsx
+│       │   │   ├── ProfilePage/
+│       │   │   │   ├── NavbarProfile.jsx
+│       │   │   │   ├── Profilepage.jsx
+│       │   │   │   └── ProfilePageApp.jsx
+│       │   │   ├── SignIn/
+│       │   │   │   ├── SignInApp.jsx
+│       │   │   │   └── SignInPage.jsx
+│       │   │   └── SignUp/
+│       │   │       ├── SignUpApp.jsx
+│       │   │       └── SignUpPage.jsx
+│       │   ├── App.jsx
+│       │   ├── Footer.jsx
+│       │   ├── Navbar.jsx
+│       │   ├── ProtectedRoute.jsx
+│       │   ├── index.css
+│       │   └── main.jsx
+│       │
+│       ├── .gitignore
+│       ├── eslint.config.js
+│       ├── index.html
+│       ├── package-lock.json
+│       ├── package.json
+│       ├── README.md
+│       └── vite.config.js
+│
+└── README.md   
+
 
 ---
 
-## 🚀 Features
+## Features
 
-### 🔐 Authentication (Sign In / Sign Up)
+### Authentication (Sign In / Sign Up)
 
 * User registration with email & password
 * Login with validation and error messages
@@ -87,7 +80,7 @@ CEROPE/
 * Token stored in `localStorage`
 * `ProtectedRoute.jsx` used to restrict access to protected pages
 
-### 👤 Account Setup
+### Account Setup
 
 **AccountSetup** (AccountApp.jsx / AccountPage.jsx) allows user to save:
 
@@ -111,7 +104,7 @@ On submit, data is sent to the backend `/profile` API with the JWT token in the 
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 
@@ -138,7 +131,7 @@ On submit, data is sent to the backend `/profile` API with the JWT token in the 
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/RKSAKETH/Cerope
 cd CEROPE
 ```
 
@@ -154,9 +147,9 @@ npm install
 Create a `.env` file inside `backend/`:
 
 ```env
-MONGO_URL=your_mongodb_connection_string
-JWT_SECRET=your_super_secret_key
-PORT=3000
+MONGO_URL=mongodb+srv://krishnasaketh566_db_user:CeropeCluster@ceropecluster.8ccicwq.mongodb.net/?appName=CeropeCluster
+JWT_SECRET=secret_key
+JWT_EXPIRES_IN=7d
 ```
 
 Run the backend server:
@@ -183,9 +176,9 @@ Frontend runs at: **[http://localhost:5173](http://localhost:5173)**
 
 ---
 
-## 📡 API Overview
+## API Overview
 
-### 🔑 Auth Routes (`backend/routes/authRoutes.js`)
+### Auth Routes (`backend/routes/authRoutes.js`)
 
 | Method | Endpoint         | Description                   |
 | ------ | ---------------- | ----------------------------- |
@@ -206,7 +199,7 @@ Example login response:
 
 ---
 
-### 👤 Profile Routes (`backend/routes/profileRoutes.js`)
+### Profile Routes (`backend/routes/profileRoutes.js`)
 
 | Method | Endpoint   | Description                                |
 | ------ | ---------- | ------------------------------------------ |
@@ -221,7 +214,7 @@ Both routes are protected using a `verifyToken` middleware which:
 
 ---
 
-## 🔐 Frontend Route Protection
+## Frontend Route Protection
 
 `ProtectedRoute.jsx` wraps protected pages like Account Setup and Profile Page:
 
@@ -231,7 +224,7 @@ Both routes are protected using a `verifyToken` middleware which:
 
 ---
 
-## 🧪 How to Test
+## How to Test
 
 1. Start **backend** (`nodemon server.js`).
 2. Start **frontend** (`npm run dev` in `frontend/frontendReact`).
@@ -244,7 +237,7 @@ Both routes are protected using a `verifyToken` middleware which:
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 **Regella Krishna Saketh**
 B.Tech CSE – Amrita Vishwa Vidyapeetham, Coimbatore
@@ -254,10 +247,4 @@ MERN Developer • Embedded Systems • AI/ML Enthusiast
 
 > 💡 *This project was built as part of the Cerope internship assignment to demonstrate full-stack skills, clean code structure, and a user-friendly UI.*
 
-```
-
-If you want, I can now also:
-
-- Write a **super-short 8–10 line README** just for the evaluator, or  
-- Add a small **“How the code is organized”** section explaining which file does what (SignInApp vs SignInPage, etc.).
 ```

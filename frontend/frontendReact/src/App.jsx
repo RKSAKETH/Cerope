@@ -10,7 +10,7 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/signup" element={<SignUpApp />} />
+        <Route path="/" element={<SignUpApp />} />
         <Route path="/signin" element={<SignInApp/>}/>
         <Route path="/setaccount/:id" element={<ProtectedRoute><AccountApp/></ProtectedRoute>}></Route>
         <Route path="/profile/:id" element={<ProfilePageApp/>} />

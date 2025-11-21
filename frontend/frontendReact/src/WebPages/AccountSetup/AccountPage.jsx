@@ -66,10 +66,9 @@ const AccountPage = () => {
 
   const handleAvatarSelect = (seed) => {
     setForm((prev) => ({ ...prev, profilePicture: seed }));
-    setAvatarSeed(seed); // ✅ update global avatar
-    localStorage.setItem("avatarSeed", seed); // ✅ persist for reload
-    // Optional: close dropdown after selecting
-    setShowAvatarSelector(false);
+    setAvatarSeed(seed); 
+    localStorage.setItem("avatarSeed", seed); 
+    // setShowAvatarSelector(false);
   };
 
   const validateForm = () => {
