@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 // Reusable button
 const Button = ({ children, className = "", ...props }) => {
   const baseStyle =
-    "w-full py-3 px-6 rounded-full font-medium transition-all duration-200 flex items-center justify-center gap-2";
+    "w-full py-3 px-6 rounded-full font-medium transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60";
   const variant =
     "bg-gray-900 text-white hover:bg-gray-800 shadow-lg hover:shadow-xl";
 
@@ -25,7 +25,7 @@ const PasswordRule = ({ valid, text }) => (
   </div>
 );
 
-// Reusable input with right icon + per-field error
+// Reusable input with right icon + conditional error (with Link)
 const InputField = ({
   placeholder,
   type = "text",
@@ -52,9 +52,22 @@ const InputField = ({
         <Icon className="absolute right-4 top-3.5 text-gray-400 w-5 h-5" />
       )}
     </div>
-    {error && (
-      <p className="text-xs text-red-600 font-semibold">{error}</p>
-    )}
+
+    {/* Render errors */}
+    {error &&
+      (error === "EmailAlreadyExists" ? (
+        <p className="text-xs text-red-600 font-semibold">
+          Looks Like You Already Have An Account.&nbsp;
+          <Link
+            to="/signin"
+            className="text-blue-600 underline font-semibold cursor-pointer"
+          >
+            Sign In
+          </Link>
+        </p>
+      ) : (
+        <p className="text-xs text-red-600 font-semibold">{error}</p>
+      ))}
   </div>
 );
 
@@ -75,22 +88,24 @@ const Signup = () => {
     confirmPassword: "",
     terms: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  // Handle changes
   const handleChange = (e) => {
-    const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: value,
+      [e.target.name]: e.target.value,
     }));
+
     setErrors((prev) => ({
       ...prev,
-      [name]: "",
+      [e.target.name]: "",
     }));
   };
 
-  // password checks for the hint panel
+  // Password requirements
   const password = form.password;
   const hasUpper = /[A-Z]/.test(password);
   const hasLower = /[a-z]/.test(password);
@@ -98,6 +113,7 @@ const Signup = () => {
   const hasSpecial = /[!@#$%^&*(),.?":{}|<>_\-]/.test(password);
   const showPasswordHints = password.length > 0;
 
+  // Validation
   const validate = () => {
     const newErrors = {
       name: "",
@@ -107,50 +123,45 @@ const Signup = () => {
       terms: "",
     };
 
-    // Name: required + no numerals
-    if (!form.name.trim()) {
-      newErrors.name = "Please enter your name.";
-    } else if (/\d/.test(form.name)) {
+    // Name
+    if (!form.name.trim()) newErrors.name = "Please enter your name.";
+    else if (/\d/.test(form.name))
       newErrors.name = "Invalid Name! Please Do Not Enter Numerals.";
-    }
 
-    // Email: required + format
+    // Email
+    const email = form.email.trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!form.email.trim()) {
-      newErrors.email = "Please enter your email.";
-    } else if (!emailRegex.test(form.email)) {
-      newErrors.email = "Invalid Email Address !";
-    }
 
-    // Password: required + strength rules
-    if (!form.password) {
-      newErrors.password = "Please enter a password.";
-    } else if (!(hasUpper && hasLower && hasNumber && hasSpecial)) {
+    if (!email) newErrors.email = "Please enter your email.";
+    else if (!emailRegex.test(email)) newErrors.email = "Invalid Email Address !";
+    else if (email.toLowerCase().endsWith("@gmail.co"))
+      newErrors.email = "Invalid Email Address !";
+
+    // Password
+    if (!form.password) newErrors.password = "Please enter a password.";
+    else if (!(hasUpper && hasLower && hasNumber && hasSpecial))
       newErrors.password = "Please meet all password requirements.";
-    }
 
     // Confirm password
-    if (!form.confirmPassword) {
+    if (!form.confirmPassword)
       newErrors.confirmPassword = "Please confirm your password.";
-    } else if (form.password !== form.confirmPassword) {
+    else if (form.password !== form.confirmPassword)
       newErrors.confirmPassword = "Passwords Don't Match.";
-    }
 
-    // Terms checkbox
-    if (!agree) {
+    // Terms
+    if (!agree)
       newErrors.terms = "Please Tick The Checkbox To Agree To The Terms .";
-    }
 
     setErrors(newErrors);
     return !Object.values(newErrors).some((msg) => msg);
   };
 
+  // Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
 
-    const isValid = validate();
-    if (!isValid) return;
+    if (!validate()) return;
 
     try {
       setLoading(true);
@@ -167,25 +178,27 @@ const Signup = () => {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        let msg = data?.message || "Looks Like You Already Have An Account. Sign In";
+        let msg = data?.message || data?.error || "Signup failed";
 
-        if (msg.toLowerCase().includes("already") && msg.toLowerCase().includes("email")) {
-          msg = "Looks Like You Already Have An Account. Sign In";
+        const lower = msg.toLowerCase();
+
+        // Convert backend message → UI message
+        if (
+          lower.includes("already") ||
+          lower.includes("email exists") ||
+          lower.includes("duplicate") ||
+          lower.includes("11000")
+        ) {
+          msg = "EmailAlreadyExists";
         }
 
-        setErrors((prev) => ({
-          ...prev,
-          email: msg,
-        }));
-        throw new Error(msg);
+        setErrors((prev) => ({ ...prev, email: msg }));
+        return;
       }
 
       setMessage("Account created successfully! 🎉");
 
-      // 🔁 redirect to Sign In after short delay
-      setTimeout(() => {
-        navigate("/signin");
-      }, 2000);
+      setTimeout(() => navigate("/signin"), 800);
     } catch (err) {
       console.error(err);
     } finally {
@@ -202,9 +215,10 @@ const Signup = () => {
         items-stretch
       "
     >
-      {/* LEFT: Form Column */}
+      {/* LEFT COLUMN */}
       <div className="w-full relative flex flex-col justify-start lg:pr-10 rounded-3xl overflow-hidden">
-        {/* Background Image for Left Column */}
+
+        {/* BG Image */}
         <div className="absolute inset-0 z-0">
           <img
             src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?q=80&w=2073&auto=format&fit=crop"
@@ -213,16 +227,14 @@ const Signup = () => {
           />
         </div>
 
-        {/* Content Wrapper */}
         <div className="relative z-10 space-y-6 py-8">
           <div className="space-y-2 pl-6">
             <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
               Set up Your Cerope Account
             </h1>
+
             {errors.terms && (
-              <p className="text-sm text-red-600 font-semibold">
-                {errors.terms}
-              </p>
+              <p className="text-sm text-red-600 font-semibold">{errors.terms}</p>
             )}
           </div>
 
@@ -246,7 +258,7 @@ const Signup = () => {
               error={errors.email}
             />
 
-            {/* Password + hints */}
+            {/* PASSWORD */}
             <div className="space-y-2">
               <InputField
                 name="password"
@@ -284,10 +296,11 @@ const Signup = () => {
               error={errors.confirmPassword}
             />
 
+            {/* TERMS */}
             <label className="flex items-start gap-3 text-sm text-gray-600 cursor-pointer py-2">
               <input
                 type="checkbox"
-                className="mt-1 rounded border-gray-300 text-black focus:ring-0"
+                className="mt-1 rounded border-gray-300 text-black focus:ring-0 cursor-pointer"
                 checked={agree}
                 onChange={(e) => {
                   setAgree(e.target.checked);
@@ -295,14 +308,12 @@ const Signup = () => {
                 }}
               />
               <span>
-                I agree to Cerope&apos;s Terms of Service &amp; Privacy Policy.
+                I agree to Cerope&apos;s Terms of Service & Privacy Policy.
               </span>
             </label>
 
             {message && (
-              <p className="text-sm text-green-600 font-semibold">
-                {message}
-              </p>
+              <p className="text-sm text-green-600 font-semibold">{message}</p>
             )}
 
             <Button type="submit" disabled={loading}>
@@ -322,7 +333,7 @@ const Signup = () => {
         </div>
       </div>
 
-      {/* RIGHT: Hero Image Card */}
+      {/* RIGHT IMAGE */}
       <div className="hidden lg:block h-full min-h-[520px] rounded-[2.5rem] overflow-hidden shadow-2xl bg-blue-900 relative">
         <img
           src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=2020&auto=format&fit=crop"
@@ -338,6 +349,7 @@ const Signup = () => {
             opacity-90
           "
         />
+
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/40 to-purple-600/40" />
         <div className="absolute top-8 right-8 text-white text-2xl font-bold">
           Cerope

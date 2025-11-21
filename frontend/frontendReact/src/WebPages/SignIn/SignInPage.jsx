@@ -53,7 +53,7 @@ const SignInPage = () => {
 
       // handle known backend errors
       if (res.status === 404) {
-        setEmailError("This email is not registered.");
+        setEmailError("Invalid Email ID !");
         return;
       }
 
@@ -207,7 +207,7 @@ const SignInPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-3 rounded-full bg-gray-900 text-white font-medium shadow-lg transition-all
+              className={`w-full py-3 rounded-full bg-gray-900 text-white cursor-pointer font-medium shadow-lg transition-all
                 ${
                   isLoading
                     ? "opacity-70 cursor-not-allowed"
@@ -227,7 +227,7 @@ const SignInPage = () => {
             {/* Google Button */}
             <button
               type="button"
-              className="w-40 h-12 flex items-center justify-center gap-2 rounded-xl border border-gray-800
+              className="w-40 h-12 flex items-center justify-center gap-2 cursor-pointer rounded-xl border border-gray-800
                          bg-white text-gray-700 font-medium hover:bg-gray-50 transition-all mx-auto"
             >
               <span className="text-2xl font-bold">G</span>

@@ -1,9 +1,13 @@
+// src/WebPages/AccountSetup/AccountPage.jsx
 import React, { useState } from "react";
 import { User, Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "../../context/UserContext.jsx";
 
 const AccountPage = () => {
   const navigate = useNavigate();
+  const { setAvatarSeed } = useUser();
+
   const inputClass =
     "w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none text-sm text-gray-700 placeholder-gray-400 transition-all shadow-sm";
   const labelClass =
@@ -11,8 +15,16 @@ const AccountPage = () => {
 
   // Avatar seeds (Micah style)
   const avatarOptions = [
-    "Christopher", "Jack", "Jude", "Oliver", "Emery", 
-    "Annie", "Halo", "Sarah", "Mela", "Jessica"
+    "Christopher",
+    "Jack",
+    "Jude",
+    "Oliver",
+    "Emery",
+    "Annie",
+    "Halo",
+    "Sarah",
+    "Mela",
+    "Jessica",
   ];
 
   const [form, setForm] = useState({
@@ -34,8 +46,10 @@ const AccountPage = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const getAvatarUrl = (seed) => 
-    `https://api.dicebear.com/9.x/micah/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4&backgroundType=gradientLinear&mouth=smile,smirk`;
+  const getAvatarUrl = (seed) =>
+    `https://api.dicebear.com/9.x/micah/svg?seed=${encodeURIComponent(
+      seed
+    )}&backgroundColor=b6e3f4&backgroundType=gradientLinear&mouth=smile,smirk`;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -52,26 +66,50 @@ const AccountPage = () => {
 
   const handleAvatarSelect = (seed) => {
     setForm((prev) => ({ ...prev, profilePicture: seed }));
-    // Optional: setShowAvatarSelector(false);
+    setAvatarSeed(seed); // ✅ update global avatar
+    localStorage.setItem("avatarSeed", seed); // ✅ persist for reload
+    // Optional: close dropdown after selecting
+    setShowAvatarSelector(false);
   };
 
   const validateForm = () => {
     const newErrors = {};
 
+    // Required: firstName
     if (!form.firstName.trim()) {
       newErrors.firstName = "First name is required";
     }
+
+    // Required: lastName
+    if (!form.lastName.trim()) {
+      newErrors.lastName = "Last name is required";
+    }
+
+    // Required: dateOfBirth
     if (!form.dateOfBirth) {
       newErrors.dateOfBirth = "Date of birth is required";
     }
+
+    // Required: stylePreference
     if (!form.stylePreference) {
       newErrors.stylePreference = "Please select a style preference";
     }
+
+    // Required: phoneNumber (and must be 10 digits)
+    if (!form.phoneNumber.trim()) {
+      newErrors.phoneNumber = "Phone number is required";
+    } else if (!/^\d{10}$/.test(form.phoneNumber)) {
+      newErrors.phoneNumber = "Enter a valid 10-digit phone number";
+    }
+
+    // Required: country
     if (!form.country.trim()) {
       newErrors.country = "Country is required";
     }
-    if (form.phoneNumber && !/^\d{10}$/.test(form.phoneNumber)) {
-      newErrors.phoneNumber = "Enter a valid 10-digit phone number";
+
+    // Required: city
+    if (!form.city.trim()) {
+      newErrors.city = "City is required";
     }
 
     setErrors(newErrors);
@@ -110,6 +148,10 @@ const AccountPage = () => {
         setGeneralError(data.error || "Failed to save profile. Try again.");
       } else {
         setSuccessMessage("Profile saved successfully! 🎉");
+
+        // ✅ sync avatar globally & locally
+        setAvatarSeed(form.profilePicture);
+        localStorage.setItem("avatarSeed", form.profilePicture);
 
         const userId = data.user?._id;
         if (!userId) {
@@ -178,7 +220,7 @@ const AccountPage = () => {
 
               {/* Last Name */}
               <div className="flex flex-col gap-2">
-                <label className={labelClass}>Last Name</label>
+                <label className={labelClass}>Last Name *</label>
                 <input
                   type="text"
                   name="lastName"
@@ -187,9 +229,12 @@ const AccountPage = () => {
                   value={form.lastName}
                   onChange={handleChange}
                 />
+                {errors.lastName && (
+                  <p className="text-xs text-red-500">{errors.lastName}</p>
+                )}
               </div>
 
-              {/* Profile Picture (UPDATED) */}
+              {/* Profile Picture (Avatar Selector) */}
               <div className="flex flex-col gap-3">
                 <label className={labelClass}>Profile Picture</label>
                 <div className="relative w-full">
@@ -202,21 +247,29 @@ const AccountPage = () => {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    
+
                     <button
                       type="button"
-                      onClick={() => setShowAvatarSelector(!showAvatarSelector)}
+                      onClick={() =>
+                        setShowAvatarSelector(!showAvatarSelector)
+                      }
                       className="flex-1 flex items-center justify-between px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all text-sm text-gray-700 shadow-sm"
                     >
                       <span>Change Avatar</span>
-                      {showAvatarSelector ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      {showAvatarSelector ? (
+                        <ChevronUp size={16} />
+                      ) : (
+                        <ChevronDown size={16} />
+                      )}
                     </button>
                   </div>
 
                   {/* Avatar Grid Dropdown */}
                   {showAvatarSelector && (
                     <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl p-4 z-50">
-                      <div className="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">Choose Style</div>
+                      <div className="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">
+                        Choose Style
+                      </div>
                       <div className="grid grid-cols-5 gap-3">
                         {avatarOptions.map((seed) => (
                           <button
@@ -224,8 +277,8 @@ const AccountPage = () => {
                             type="button"
                             onClick={() => handleAvatarSelect(seed)}
                             className={`rounded-full p-0.5 transition-all ${
-                              form.profilePicture === seed 
-                                ? "ring-2 ring-purple-500 ring-offset-1" 
+                              form.profilePicture === seed
+                                ? "ring-2 ring-purple-500 ring-offset-1"
                                 : "hover:ring-2 hover:ring-gray-200 hover:ring-offset-1"
                             }`}
                           >
@@ -237,7 +290,7 @@ const AccountPage = () => {
                           </button>
                         ))}
                       </div>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => setShowAvatarSelector(false)}
                         className="w-full mt-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors"
@@ -298,7 +351,7 @@ const AccountPage = () => {
 
               {/* Phone Number */}
               <div className="flex flex-col gap-2">
-                <label className={labelClass}>Phone Number</label>
+                <label className={labelClass}>Phone Number*</label>
                 <input
                   type="text"
                   name="phoneNumber"
@@ -364,9 +417,9 @@ const AccountPage = () => {
                 )}
               </div>
 
-              {/* City (UPDATED: Changed to Input) */}
+              {/* City */}
               <div className="flex flex-col gap-2">
-                <label className={labelClass}>City</label>
+                <label className={labelClass}>City *</label>
                 <input
                   type="text"
                   name="city"
@@ -375,6 +428,9 @@ const AccountPage = () => {
                   value={form.city}
                   onChange={handleChange}
                 />
+                {errors.city && (
+                  <p className="text-xs text-red-500">{errors.city}</p>
+                )}
               </div>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Edit2, ChevronDown, ChevronUp } from "lucide-react";
+import { useUser } from "../../context/UserContext.jsx"; // ✅ NEW
 
 const Profilepage = () => {
   const [profile, setProfile] = useState(null);
@@ -17,6 +18,9 @@ const Profilepage = () => {
   // Avatar selection state
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [selectedAvatarSeed, setSelectedAvatarSeed] = useState("");
+
+  // ✅ shared avatar context (Navbar + AccountPage + ProfilePage)
+  const { setAvatarSeed } = useUser();
 
   // Avatar options (Micah style)
   const avatarOptions = [
@@ -72,6 +76,8 @@ const Profilepage = () => {
             "User";
 
           setSelectedAvatarSeed(seed);
+          setAvatarSeed(seed);                 // ✅ sync context
+          localStorage.setItem("avatarSeed", seed); // ✅ persist
         }
       } catch (err) {
         console.error(err);
@@ -82,7 +88,7 @@ const Profilepage = () => {
     };
 
     fetchProfile();
-  }, []);
+  }, [setAvatarSeed]);
 
   // Save handler – updates profilePicture (and other fields) in DB
   const handleSave = async () => {
@@ -126,6 +132,11 @@ const Profilepage = () => {
         const updatedProfile = data.profile || data.user?.profile || profile;
         setProfile(updatedProfile);
         setSuccessMessage("Profile updated successfully ✅");
+
+        // ✅ keep global avatar in sync after save too
+        setAvatarSeed(selectedAvatarSeed);
+        localStorage.setItem("avatarSeed", selectedAvatarSeed);
+
         setShowAvatarSelector(false);
       }
     } catch (err) {
@@ -354,7 +365,11 @@ const Profilepage = () => {
                           <button
                             key={seed}
                             type="button"
-                            onClick={() => setSelectedAvatarSeed(seed)}
+                            onClick={() => {
+                              setSelectedAvatarSeed(seed);
+                              setAvatarSeed(seed); // ✅ sync context immediately
+                              localStorage.setItem("avatarSeed", seed);
+                            }}
                             className={`rounded-full p-0.5 transition-all ${
                               selectedAvatarSeed === seed
                                 ? "ring-2 ring-black ring-offset-1"
