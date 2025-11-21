@@ -128,7 +128,7 @@ On submit, data is sent to the backend `/profile` API with the JWT token in the 
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/RKSAKETH/Cerope
+git clone https://github.com/RKSAKETH/Cerope.git
 cd CEROPE
 ```
 
