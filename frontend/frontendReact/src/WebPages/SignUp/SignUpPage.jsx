@@ -37,17 +37,19 @@ const InputField = ({
 }) => (
   <div className="flex flex-col gap-1">
     <div className="relative">
-      <input
+     <input
         name={name}
         type={type}
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className={`w-full px-4 py-3 rounded-xl border bg-gray-50/80 focus:bg-white 
+        className={`w-full px-4 py-3 rounded-xl border bg-transparent 
+          focus:bg-transparent text-black
           focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none 
-          transition-all text-gray-800 placeholder-gray-500 placeholder:font-bold
+          transition-all placeholder-gray-500 placeholder:font-bold
           ${error ? "border-red-500" : "border-gray-200"}`}
-      />
+     />
+
       {Icon && (
         <Icon className="absolute right-4 top-3.5 text-gray-400 w-5 h-5" />
       )}

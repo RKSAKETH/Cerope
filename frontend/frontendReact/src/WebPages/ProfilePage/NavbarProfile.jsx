@@ -5,7 +5,7 @@ const Logo = () => (
   <div className="flex items-center gap-2 text-2xl font-extrabold text-gray-900 cursor-pointer">
     <div className="w-8 h-8 text-black">
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
-        <path d="M12 4C7 4 2 8 2 12s5 8 10 8 10-4 10-8-5-8-10-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-6z"/>
+        <path d="M12 4C7 4 2 8 2 12s5 8 10 8 10-4 10-8-5-8-10-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-6 2.69-6 6z"/>
         <path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z" opacity="0.5"/>
       </svg>
     </div>
@@ -28,10 +28,16 @@ const NavbarProfile = () => {
       {/* Right Side: Nav Links + Avatar */}
       <div className="flex items-center gap-8">
         <nav className="hidden md:flex items-center gap-8 text-gray-700 font-bold">
-          <button className="hover:text-black transition-colors">Home</button>
+          
+          {/* UPDATED HOME BUTTON */}
+          <button className="text-blue-600 underline underline-offset-4 hover:text-blue-800 transition-colors">
+            Home
+          </button>
+
           <div className="flex items-center gap-1 cursor-pointer hover:text-black transition-colors">
             Know My Vibe <ChevronDown size={18} strokeWidth={3} />
           </div>
+
           <button className="hover:text-black transition-colors">My Wardrobe</button>
           <button className="hover:text-black transition-colors">Ask AI Pal</button>
           <button className="hover:text-black transition-colors">Plan Outfit</button>
